@@ -34,7 +34,10 @@ export type Permission =
   | "analytics:financial"
   | "analytics:stock";
 
-const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
+const ROLE_PERMISSIONS: Record<
+  MerchantRole,
+  ReadonlySet<Permission>
+> = {
   owner: new Set<Permission>([
     "billing:read",
     "billing:manage",
@@ -177,7 +180,9 @@ export function hasAnyPermission(
   role: MerchantRole,
   permissions: readonly Permission[]
 ): boolean {
-  return permissions.some((perm) => ROLE_PERMISSIONS[role].has(perm));
+  return permissions.some((permission) =>
+    ROLE_PERMISSIONS[role].has(permission)
+  );
 }
 
 export function canAssignRole(
@@ -200,7 +205,10 @@ export class ForbiddenRoleError extends Error {
   readonly code = "FORBIDDEN_ROLE";
 
   constructor(role: MerchantRole, permission: Permission) {
-    super(`Role '${role}' does not have permission '${permission}'.`);
+    super(
+      `Role '${role}' does not have permission '${permission}'.`
+    );
+
     this.name = "ForbiddenRoleError";
   }
 }
