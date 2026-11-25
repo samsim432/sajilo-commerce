@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Warm Editorial Minimalism — Core Surfaces & Ink */
+  --ivory: #F8F4EF;
+  --sand: #E8DED3;
+  --surface: #FFFFFF;
+  --surface-hover: #F2ECE4;
+  --charcoal: #242321;
+  --muted-ink: #756D65;
+  --subtle-ink: #9E958C;
+  --soft-border: #E6DED6;
+  --strong-border: #CFC3B6;
+
+  /* Brand Accent — Soft Coral */
+  --coral: #ED896D;
+  --coral-hover: #E07456;
+  --coral-tint: #FBECE7;
+
+  /* Semantic Commerce Status Tokens */
+  --status-success-fg: #1F6E43;
+  --status-success-bg: #E7F3EC;
+  --status-success-border: #BFE0CD;
+
+  --status-warning-fg: #8F5414;
+  --status-warning-bg: #FBF0E1;
+  --status-warning-border: #EED3AE;
+
+  --status-danger-fg: #A63228;
+  --status-danger-bg: #FBEAE8;
+  --status-danger-border: #EBC2BE;
+
+  --status-info-fg: #24557A;
+  --status-info-bg: #E8F0F7;
+  --status-info-border: #BDD3E6;
+
+  --status-neutral-fg: #5C554E;
+  --status-neutral-bg: #EDE8E2;
+  --status-neutral-border: #D8CFC6;
+
+  /* shadcn/ui Semantic Variable Bridge */
+  --background: var(--ivory);
+  --foreground: var(--charcoal);
+  --card: var(--surface);
+  --card-foreground: var(--charcoal);
+  --popover: var(--surface);
+  --popover-foreground: var(--charcoal);
+  --primary: var(--coral);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--sand);
+  --secondary-foreground: var(--charcoal);
+  --muted: var(--sand);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--charcoal);
+  --destructive: var(--status-danger-fg);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--soft-border);
+  --input: var(--soft-border);
+  --ring: var(--coral);
+  --radius: 0.875rem;
+}
+
+@theme inline {
+  /* Palette Utilities: bg-ivory, text-charcoal, bg-coral, border-soft, etc. */
+  --color-ivory: var(--ivory);
+  --color-sand: var(--sand);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-charcoal: var(--charcoal);
+  --color-muted-ink: var(--muted-ink);
+  --color-subtle-ink: var(--subtle-ink);
+  --color-soft: var(--soft-border);
+  --color-strong: var(--strong-border);
+  --color-coral: var(--coral);
+  --color-coral-hover: var(--coral-hover);
+  --color-coral-tint: var(--coral-tint);
+
+  /* Status Utilities */
+  --color-success-fg: var(--status-success-fg);
+  --color-success-bg: var(--status-success-bg);
+  --color-success-border: var(--status-success-border);
+  --color-warning-fg: var(--status-warning-fg);
+  --color-warning-bg: var(--status-warning-bg);
+  --color-warning-border: var(--status-warning-border);
+  --color-danger-fg: var(--status-danger-fg);
+  --color-danger-bg: var(--status-danger-bg);
+  --color-danger-border: var(--status-danger-border);
+  --color-info-fg: var(--status-info-fg);
+  --color-info-bg: var(--status-info-bg);
+  --color-info-border: var(--status-info-border);
+  --color-neutral-fg: var(--status-neutral-fg);
+  --color-neutral-bg: var(--status-neutral-bg);
+  --color-neutral-border: var(--status-neutral-border);
+
+  /* shadcn/ui Mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Typography — wired to next/font variables */
+  --font-sans: var(--font-inter), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Radii */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/40;
+  }
+
+  html {
+    background-color: var(--ivory);
+    color: var(--charcoal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-ivory text-charcoal font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display text-charcoal tracking-tight;
+  }
+
+  /* Extra vertical breathing room for Devanagari vowel diacritics when Nepali is active */
+  html[lang="ne"] body {
+    line-height: 1.7;
+  }
+}
+
+@utility tabular-nums-npr {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
