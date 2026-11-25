@@ -1,9 +1,20 @@
+
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { OnboardingWizard } from "@/features/businesses/onboarding-wizard";
 
-export default async function OnboardingPage() {
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<OnboardingLoading />}>
+      <OnboardingContent />
+    </Suspense>
+  );
+}
+
+async function OnboardingContent() {
   const supabase = await createSupabaseServerClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,6 +32,20 @@ export default async function OnboardingPage() {
   return (
     <div className="min-h-screen bg-ivory px-4 py-10 sm:py-14">
       <OnboardingWizard defaultName={profile?.full_name ?? ""} />
+    </div>
+  );
+}
+
+function OnboardingLoading() {
+  return (
+    <div
+      className="flex min-h-screen items-center justify-center bg-ivory"
+      role="status"
+      aria-live="polite"
+    >
+      <p className="text-sm text-slate-600">
+        Loading onboarding...
+      </p>
     </div>
   );
 }
