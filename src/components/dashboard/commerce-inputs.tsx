@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,14 +6,17 @@ import { cn } from "@/lib/utils";
 import { nprToPaisa, paisaToNpr } from "@/lib/currency/npr";
 
 export interface PhoneInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "onChange"
+  > {
   value: string;
   onValueChange: (value: string) => void;
   error?: string;
 }
 
 /**
- * Nepal mobile input with fixed +977 prefix badge and numeric keypad on mobile.
+ * Nepal mobile input with fixed +977 prefix badge.
  */
 export function PhoneInput({
   value,
@@ -36,6 +40,7 @@ export function PhoneInput({
         <span className="flex h-full items-center border-r border-soft bg-ivory px-3 text-sm font-medium text-charcoal select-none tabular-nums-npr">
           +977
         </span>
+
         <input
           id={id}
           type="tel"
@@ -49,6 +54,7 @@ export function PhoneInput({
           {...props}
         />
       </div>
+
       {error ? <p className="text-xs text-danger-fg">{error}</p> : null}
     </div>
   );
@@ -59,7 +65,7 @@ export interface CurrencyInputProps
     React.InputHTMLAttributes<HTMLInputElement>,
     "type" | "value" | "onChange"
   > {
-  /** Value stored in integer minor units (paisa), e.g., 149900 = NPR 1,499 */
+  /** Value stored in integer paisa minor units. */
   valueMinor: number;
   onChangeMinor: (paisa: number) => void;
   allowDecimals?: boolean;
@@ -84,6 +90,7 @@ export function CurrencyInput({
 
   React.useEffect(() => {
     const currentParsed = draft === "" ? 0 : nprToPaisa(Number(draft));
+
     if (currentParsed !== valueMinor) {
       setDraft(valueMinor === 0 ? "" : String(paisaToNpr(valueMinor)));
     }
@@ -91,12 +98,19 @@ export function CurrencyInput({
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
-    const pattern = allowDecimals ? /^\d*\.?\d{0,2}$/ : /^\d*$/;
+
+    const pattern = allowDecimals
+      ? /^\d*(?:\.\d{0,2})?$/
+      : /^\d*$/;
+
     if (!pattern.test(raw)) {
       return;
     }
+
     setDraft(raw);
+
     const parsed = raw === "" || raw === "." ? 0 : Number(raw);
+
     onChangeMinor(Math.max(0, nprToPaisa(parsed)));
   }
 
@@ -114,6 +128,7 @@ export function CurrencyInput({
         <span className="flex h-full items-center border-r border-soft bg-ivory px-3 text-xs font-semibold tracking-wide text-muted-ink select-none">
           NPR
         </span>
+
         <input
           id={id}
           type="text"
@@ -126,7 +141,51 @@ export function CurrencyInput({
           {...props}
         />
       </div>
+
       {error ? <p className="text-xs text-danger-fg">{error}</p> : null}
+    </div>
+  );
+}
+
+export interface NprAmountInputProps
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type" | "value" | "onChange"
+  > {
+  value: string;
+  onValueChange: (value: string) => void;
+}
+
+/**
+ * Simple controlled NPR amount input.
+ * Keeps the value as a major-unit string for form handling.
+ */
+export function NprAmountInput({
+  value,
+  onValueChange,
+  className,
+  ...props
+}: NprAmountInputProps) {
+  return (
+    <div
+      className={cn(
+        "flex h-[42px] items-center overflow-hidden rounded-[10px] border border-soft bg-surface transition-colors focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/30",
+        className
+      )}
+    >
+      <span className="flex h-full items-center border-r border-soft bg-ivory px-3 text-xs font-semibold tracking-wide text-muted-ink select-none">
+        NPR
+      </span>
+
+      <input
+        type="text"
+        inputMode="decimal"
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder="0.00"
+        className="h-full w-full bg-transparent px-3 text-right text-sm font-medium text-charcoal placeholder:text-subtle-ink focus:outline-none tabular-nums-npr"
+        {...props}
+      />
     </div>
   );
 }
