@@ -1,4 +1,5 @@
-﻿import { z } from "zod";
+﻿
+import { z } from "zod";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { transitionMerchantOrder } from "@/features/orders/order-service";
 import {
@@ -8,7 +9,12 @@ import {
 
 export const createShippingZoneSchema = z.object({
   name: z.string().trim().min(2).max(100),
-  zone_code: z.enum(["inside_valley", "outside_valley", "remote_district", "custom"]),
+  zone_code: z.enum([
+    "inside_valley",
+    "outside_valley",
+    "remote_district",
+    "custom",
+  ]),
   districts: z.array(z.string().trim().min(1)).default([]),
   rate_label: z.string().trim().min(2).max(80).default("Standard Delivery"),
   flat_fee_minor: z.number().int().min(0),
@@ -51,7 +57,9 @@ export const updateShipmentStatusSchema = z.object({
 
 export const reconcileCodBatchSchema = z.object({
   courier_provider: z.string().trim().min(2).max(60),
-  shipment_ids: z.array(z.string().uuid()).min(1, "Select at least one delivered COD shipment."),
+  shipment_ids: z
+    .array(z.string().uuid())
+    .min(1, "Select at least one delivered COD shipment."),
   remitted_total_minor: z.number().int().min(0),
   notes: z.string().trim().max(300).optional(),
 });
@@ -60,10 +68,10 @@ export async function listBusinessShippingZones(
   businessId: string
 ): Promise<ShippingZoneConfig[]> {
   const serviceClient = createSupabaseServiceClient();
+
   const { data } = await serviceClient
     .from("shipping_zones")
-    .select(
-      `
+    .select(`
       id,
       name,
       zone_code,
@@ -78,8 +86,7 @@ export async function listBusinessShippingZones(
         cod_allowed,
         is_active
       )
-    `
-    )
+    `)
     .eq("business_id", businessId)
     .eq("is_active", true)
     .order("created_at", { ascending: true });
@@ -90,12 +97,12 @@ export async function listBusinessShippingZones(
     zone_code: ShippingZoneConfig["zone_code"];
     districts: string[];
     shipping_rates?: ShippingZoneConfig["rates"];
-  }>).map((z) => ({
-    id: z.string(),
-    name: z.name,
-    zone_code: z.zone_code,
-    districts: z.districts ?? [],
-    rates: z.shipping_rates ?? [],
+  }>).map((zone) => ({
+    id: zone.id,
+    name: zone.name,
+    zone_code: zone.zone_code,
+    districts: zone.districts ?? [],
+    rates: zone.shipping_rates ?? [],
   }));
 }
 
@@ -104,12 +111,14 @@ export async function createShippingZoneWithRate(params: {
   rawInput: unknown;
 }) {
   const parsed = createShippingZoneSchema.safeParse(params.rawInput);
+
   if (!parsed.success) {
     return {
       error: {
         status: 422,
         code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid shipping zone payload.",
+        message:
+          parsed.error.issues[0]?.message ?? "Invalid shipping zone payload.",
       },
     };
   }
@@ -144,9 +153,13 @@ export async function createShippingZoneWithRate(params: {
     zone_id: zone.id,
     label: input.rate_label,
     flat_fee_minor: input.flat_fee_minor,
-    free_shipping_min_order_minor: input.free_shipping_min_order_minor ?? null,
+    free_shipping_min_order_minor:
+      input.free_shipping_min_order_minor ?? null,
     estimated_days_min: input.estimated_days_min,
-    estimated_days_max: Math.max(input.estimated_days_min, input.estimated_days_max),
+    estimated_days_max: Math.max(
+      input.estimated_days_min,
+      input.estimated_days_max
+    ),
     cod_allowed: input.cod_allowed,
     is_active: true,
   });
@@ -156,10 +169,10 @@ export async function createShippingZoneWithRate(params: {
 
 export async function listBusinessShipments(businessId: string) {
   const serviceClient = createSupabaseServiceClient();
+
   const { data } = await serviceClient
     .from("shipments")
-    .select(
-      `
+    .select(`
       id,
       courier_provider,
       courier_name_custom,
@@ -181,8 +194,7 @@ export async function listBusinessShipments(businessId: string) {
         total_minor,
         customers:customer_id ( full_name, phone_e164 )
       )
-    `
-    )
+    `)
     .eq("business_id", businessId)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -196,12 +208,14 @@ export async function dispatchOrderShipment(params: {
   rawInput: unknown;
 }) {
   const parsed = createShipmentSchema.safeParse(params.rawInput);
+
   if (!parsed.success) {
     return {
       error: {
         status: 422,
         code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid shipment details.",
+        message:
+          parsed.error.issues[0]?.message ?? "Invalid shipment details.",
       },
     };
   }
@@ -248,7 +262,9 @@ export async function dispatchOrderShipment(params: {
       dispatched_at: new Date().toISOString(),
       created_by: params.actorUserId,
     })
-    .select("id, courier_provider, tracking_number, status, is_cod, cod_expected_minor")
+    .select(
+      "id, courier_provider, tracking_number, status, is_cod, cod_expected_minor"
+    )
     .single();
 
   if (shipErr || !shipment) {
@@ -261,7 +277,7 @@ export async function dispatchOrderShipment(params: {
     };
   }
 
-  // Advance order to shipped if currently confirmed/processing/packed
+  // Advance order to shipped if currently confirmed/processing/packed.
   if (["confirmed", "processing", "packed"].includes(order.status)) {
     await transitionMerchantOrder({
       businessId: params.businessId,
@@ -286,12 +302,15 @@ export async function updateShipmentDeliveryStatus(params: {
   rawInput: unknown;
 }) {
   const parsed = updateShipmentStatusSchema.safeParse(params.rawInput);
+
   if (!parsed.success) {
     return {
       error: {
         status: 422,
         code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid shipment status update.",
+        message:
+          parsed.error.issues[0]?.message ??
+          "Invalid shipment status update.",
       },
     };
   }
@@ -319,10 +338,14 @@ export async function updateShipmentDeliveryStatus(params: {
   const patch: Record<string, unknown> = {
     status: input.status,
   };
-  if (input.notes) patch.notes = input.notes;
+
+  if (input.notes) {
+    patch.notes = input.notes;
+  }
 
   if (input.status === "delivered") {
     patch.delivered_at = new Date().toISOString();
+
     if (shipment.is_cod) {
       patch.cod_collected_minor =
         input.cod_collected_minor ?? Number(shipment.cod_expected_minor);
@@ -367,12 +390,15 @@ export async function reconcileCodCashBatch(params: {
   rawInput: unknown;
 }) {
   const parsed = reconcileCodBatchSchema.safeParse(params.rawInput);
+
   if (!parsed.success) {
     return {
       error: {
         status: 422,
         code: "VALIDATION_ERROR",
-        message: parsed.error.issues[0]?.message ?? "Invalid COD reconciliation payload.",
+        message:
+          parsed.error.issues[0]?.message ??
+          "Invalid COD reconciliation payload.",
       },
     };
   }
@@ -382,12 +408,17 @@ export async function reconcileCodCashBatch(params: {
 
   const { data: shipments } = await serviceClient
     .from("shipments")
-    .select("id, order_id, status, is_cod, cod_reconciled, cod_expected_minor, cod_collected_minor")
+    .select(
+      "id, order_id, status, is_cod, cod_reconciled, cod_expected_minor, cod_collected_minor"
+    )
     .eq("business_id", params.businessId)
     .in("id", input.shipment_ids);
 
   const eligible = (shipments ?? []).filter(
-    (s) => s.is_cod && s.status === "delivered" && !s.cod_reconciled
+    (shipment) =>
+      shipment.is_cod &&
+      shipment.status === "delivered" &&
+      !shipment.cod_reconciled
   );
 
   if (eligible.length === 0) {
@@ -401,7 +432,7 @@ export async function reconcileCodCashBatch(params: {
   }
 
   const expectedTotalMinor = eligible.reduce(
-    (sum, s) => sum + Number(s.cod_expected_minor),
+    (sum, shipment) => sum + Number(shipment.cod_expected_minor),
     0
   );
 
@@ -410,9 +441,10 @@ export async function reconcileCodCashBatch(params: {
     remittedTotalMinor: input.remitted_total_minor,
   });
 
-  const batchRef = `COD-${new Date().toISOString().slice(2, 10).replaceAll("-", "")}-${Math.floor(
-    100 + Math.random() * 900
-  )}`;
+  const batchRef = `COD-${new Date()
+    .toISOString()
+    .slice(2, 10)
+    .replaceAll("-", "")}-${Math.floor(100 + Math.random() * 900)}`;
 
   const { data: batch, error: bErr } = await serviceClient
     .from("cod_reconciliation_batches")
@@ -427,7 +459,9 @@ export async function reconcileCodCashBatch(params: {
       notes: input.notes || null,
       reconciled_by: params.actorUserId,
     })
-    .select("id, batch_reference, expected_total_minor, remitted_total_minor, variance_minor, status")
+    .select(
+      "id, batch_reference, expected_total_minor, remitted_total_minor, variance_minor, status"
+    )
     .single();
 
   if (bErr || !batch) {
@@ -441,18 +475,20 @@ export async function reconcileCodCashBatch(params: {
   }
 
   await serviceClient.from("cod_reconciliation_items").insert(
-    eligible.map((s) => ({
+    eligible.map((shipment) => ({
       business_id: params.businessId,
       batch_id: batch.id,
-      shipment_id: s.id,
-      order_id: s.order_id,
-      expected_minor: Number(s.cod_expected_minor),
-      collected_minor: Number(s.cod_collected_minor || s.cod_expected_minor),
+      shipment_id: shipment.id,
+      order_id: shipment.order_id,
+      expected_minor: Number(shipment.cod_expected_minor),
+      collected_minor: Number(
+        shipment.cod_collected_minor || shipment.cod_expected_minor
+      ),
     }))
   );
 
-  const shipmentIds = eligible.map((s) => s.id);
-  const orderIds = eligible.map((s) => s.order_id);
+  const shipmentIds = eligible.map((shipment) => shipment.id);
+  const orderIds = eligible.map((shipment) => shipment.order_id);
 
   await serviceClient
     .from("shipments")

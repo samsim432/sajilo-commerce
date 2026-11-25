@@ -1,3 +1,4 @@
+
 import type { MerchantRole } from "@/features/auth/workspace";
 
 export type Permission =
@@ -24,6 +25,9 @@ export type Permission =
   | "payments:verify_settle"
   | "shipments:read"
   | "shipments:manage"
+  | "shipping:read"
+  | "shipping:write"
+  | "finance:reconcile"
   | "customers:read"
   | "customers:write"
   | "analytics:sales"
@@ -55,6 +59,9 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "payments:verify_settle",
     "shipments:read",
     "shipments:manage",
+    "shipping:read",
+    "shipping:write",
+    "finance:reconcile",
     "customers:read",
     "customers:write",
     "analytics:sales",
@@ -83,6 +90,9 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "payments:verify_settle",
     "shipments:read",
     "shipments:manage",
+    "shipping:read",
+    "shipping:write",
+    "finance:reconcile",
     "customers:read",
     "customers:write",
     "analytics:sales",
@@ -105,6 +115,8 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "payments:read",
     "shipments:read",
     "shipments:manage",
+    "shipping:read",
+    "shipping:write",
     "customers:read",
     "customers:write",
     "analytics:sales",
@@ -119,6 +131,8 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "payments:log_manual",
     "shipments:read",
     "shipments:manage",
+    "shipping:read",
+    "shipping:write",
     "customers:read",
   ]),
 
@@ -131,6 +145,8 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "payments:read",
     "payments:verify_settle",
     "shipments:read",
+    "shipping:read",
+    "finance:reconcile",
     "customers:read",
     "analytics:sales",
     "analytics:financial",
@@ -144,11 +160,16 @@ const ROLE_PERMISSIONS: Record<MerchantRole, ReadonlySet<Permission>> = {
     "orders:pack_dispatch",
     "shipments:read",
     "shipments:manage",
+    "shipping:read",
+    "shipping:write",
     "analytics:stock",
   ]),
 };
 
-export function hasPermission(role: MerchantRole, permission: Permission): boolean {
+export function hasPermission(
+  role: MerchantRole,
+  permission: Permission
+): boolean {
   return ROLE_PERMISSIONS[role].has(permission);
 }
 
@@ -166,9 +187,11 @@ export function canAssignRole(
   if (actorRole === "owner") {
     return true;
   }
+
   if (actorRole === "admin") {
     return targetRole !== "admin";
   }
+
   return false;
 }
 
